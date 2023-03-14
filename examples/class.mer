@@ -1,0 +1,9 @@
+class Cat{
+    let x = 0,y=0;
+}
+class Good{
+    let a = 0;
+    let b = 0.1;
+    let c = Cat();
+    let d = [23,12];
+};

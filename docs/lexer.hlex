@@ -1,0 +1,67 @@
+[ignore]{
+    SPACE
+}$
+[user_def,STRING]{
+    pos++;
+    std::map<char, std::string> escape = {
+         {'n', "\n"}, {'t', "\t"}, {'r', "\r"}, {'\\', "\\"}, {'\'', "\\'"}, {'\"', "\""}};
+    std::string ret = "";
+    while (pos < s.size() && s[pos] != '\"')
+    {
+        if (s[pos] == '\\')
+        {
+            if (pos == s.size())
+                throw std::runtime_error("invalid string");
+            pos++;
+            if (!escape.count(s[pos]))
+                throw std::runtime_error("invalid escape string!");
+            ret += escape[s[pos]];
+        }
+        else
+            ret += s[pos];
+        pos++;
+    }
+    pos++;
+    return ret;
+}$
+[keywords]{
+    CLASS:class,
+    FUNCTION:fn,
+    IF:if,
+    WHILE:while,
+    ELSE:else,
+    FOR:for,
+    LET:let,
+    RETURN:return,
+    BREAK:break,
+    CONTINUE:continue
+}$
+SPACE:\s|\t$
+ADD:\+$
+SUB:-$
+MUL:*$
+DIV:/$
+MOD:%$
+
+STRING:"$
+INT:[0-9]+$
+REAL:[0-9]+.[0-9]+$
+LPAR:\($
+RPAR:\)$
+BEGIN:{$
+END:}$
+NEWLINE:\n|\r\n$
+
+EQ:==$
+GT:> $
+LT:< $
+GE:>=$
+LE:<=$
+NOT:!$
+NE:!=$
+
+
+COMMA:,$
+SEMI:;$
+ASSIGN:\=$
+SYMBOL:[a-zA-Z_][a-zA-Z_0-9]*$

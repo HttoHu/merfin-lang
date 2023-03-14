@@ -1,0 +1,1 @@
+./hlex ../docs/lexer.hlex ../includes/lexer.h

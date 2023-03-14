@@ -1,0 +1,10 @@
+fn int sum(int start,int end)
+{
+    for (let i=start;i<=end;i=i+1)
+    {
+        sum=sum+i;
+        if(sum > 1000)
+            break;
+    }
+    return sum;
+}

@@ -1,0 +1,8 @@
+fn int test(){
+    let arr[5] = [1,2,3,4,5];
+    let arr2[3][3] = int [];
+    let arr2[3][3][3] =double [];
+    let arr[]= [1,2,3];
+    
+
+}
