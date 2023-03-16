@@ -1,9 +1,14 @@
 class Cat{
-    let x = 0,y=0;
+    let x = 0;
+    let y=0;
+
+    fn get_y(){
+        return y;
+    }
 }
 class Good{
     let a = 0;
     let b = 0.1;
     let c = Cat();
-    let d = [23,12];
+    let d[3][2] = [[1,2],[2,3]];
 };

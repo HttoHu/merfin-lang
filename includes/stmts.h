@@ -4,4 +4,5 @@
 #include <memory>
 namespace Parser{
     std::unique_ptr<AstNode> parse_stmts();
+    void parse_program();
 }

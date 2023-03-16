@@ -9,8 +9,8 @@ llvm::Type *BasicType::to_llvm_type()
         return llvm::Type::getInt32Ty(*env.the_context);
     else if (kind == REAL)
         return llvm::Type::getDoubleTy(*env.the_context);
-    else if(kind == CHAR)
+    else if (kind == CHAR)
         return llvm::Type::getInt8Ty(*env.the_context);
-    else 
+    else
         throw SyntaxError("invalid type");
 }

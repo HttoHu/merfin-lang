@@ -1,7 +1,7 @@
 #include "../includes/stmts.h"
 #include "../includes/env.h"
 #include "../includes/symbol.h"
-
+#include "../includes/class.h"
 namespace Parser
 {
     std::unique_ptr<AstNode> parse_if_ast();
@@ -41,6 +41,19 @@ namespace Parser
         env.match(HLex::SEMI);
         return ret_node;
     }
+    void parse_program()
+    {
+        while(env.pos < env.tokens.size())
+        {
+            if(env.cur_tag() == HLex::FUNCTION)
+                parse_function()->gen_func();
+            else if(env.cur_tag() == HLex::CLASS)
+                parse_class()->to_llvm_type();
+            else 
+                throw SyntaxError("syntax error!");
+        }
+    }
+
     std::vector<unique_ptr<AstNode>> parse_block()
     {
         Sym::Word::new_block();

@@ -1,7 +1,7 @@
 #include "../includes/expr.h"
 #include "../includes/env.h"
 #include "../includes/symbol.h"
-
+#include "../includes/class.h"
 namespace Parser
 {
     using namespace llvm;
@@ -158,11 +158,20 @@ namespace Parser
         if (symbol->get_wordtype() == Sym::VAR)
         {
             env.next_token();
+            
             return std::make_unique<Variable>(sym_name);
         }
         else if (symbol->get_wordtype() == Sym::FUNC)
         {
             return parse_call();
+        }
+        else if (symbol->get_wordtype() == Sym::CLASS)
+        {
+            env.next_token();
+            auto ty = static_cast<Mer::ClassType*>(BasicType::find_type(sym_name));
+            env.match(HLex::LPAR);
+            env.match(HLex::RPAR);
+            return std::make_unique<Parser::ClassConstructor>(ty);
         }
         return nullptr;
     }

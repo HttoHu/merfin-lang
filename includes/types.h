@@ -36,13 +36,3 @@ public:
     virtual llvm::Type *to_llvm_type();
     Kind kind;
 };
-namespace Type
-{
-    class ClassTyep : public BasicType
-    {
-    public:
-        
-    private:
-
-    };
-}

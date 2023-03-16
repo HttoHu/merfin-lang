@@ -9,8 +9,9 @@
 #include "llvm/IR/Verifier.h"
 #include "../includes/lexer.h"
 #include "../includes/env.h"
-#include "../includes/expr.h"
+#include "../includes/stmts.h"
 #include "../includes/function.h"
+#include "../includes/class.h"
 
 int cur_line = 1;
 Env env;
@@ -50,9 +51,8 @@ int main(int argc, char **argv)
         string filename = argv[1];
 
         env.load_file(read_file(filename));
+        Parser::parse_program();
 
-        auto func = Parser::parse_function();
-        func->gen_func();
         env.the_module->print(llvm::errs(), nullptr);
     }
     catch (SyntaxError &e)

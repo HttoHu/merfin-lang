@@ -21,7 +21,8 @@ namespace Parser
         WHILE,
         VAR_DECL,
         BREAK,
-        CONTINUE
+        CONTINUE,
+        CLASS_CONS
     };
     class AstNode
     {
@@ -43,4 +44,5 @@ namespace Parser
     private:
         NodeType type;
     };
+    using Node = std::unique_ptr<AstNode>;
 }

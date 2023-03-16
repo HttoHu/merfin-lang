@@ -4,21 +4,40 @@
 #include <map>
 #include "../includes/types.h"
 #include "../includes/ast.h"
-namespace Parser
+
+namespace Mer
 {
-    class UserType
+    class ClassType : public BasicType
     {
     public:
-        UserType() {}
+        ClassType() : BasicType(CLASS) {}
+        llvm::Type *to_llvm_type() override;
 
-        bool contains(const std::string &name);
-        BasicType *member_type(const std::string &name);
-        void add_member(const std::string &mem_name,unique_ptr<AstNode> init_val);
+         
+        void add_member(const std::string &name, Parser::Node node);
+
+        std::pair<int,BasicType*> find_member(const std::string &name);
+
+        llvm::Value* construct();
+    private:
+        int cnt = 0;
+        llvm::Type *llvm_type = nullptr;
+        std::vector<std::pair<std::string, Parser::Node>> members;
+        std::map<std::string, int> name_tab;
+    };
+}
+namespace Parser
+{
+    Mer::ClassType *parse_class();
+
+    class ClassConstructor final : public AstNode
+    {
+    public:
+        ClassConstructor(Mer::ClassType *uty) : type(uty), AstNode(CLASS_CONS) {}
+        llvm::Value *codegen() const override;
+        BasicType *get_type() const override;
 
     private:
-        std::map<std::string, BasicType *> type_tab;
-        std::map<std::string, unique_ptr<AstNode>> init_val_tab;
+        Mer::ClassType *type;
     };
-    std::unique_ptr<UserType> parse_class();
-
 };
