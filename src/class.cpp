@@ -32,7 +32,7 @@ namespace Parser
     {
         return type->construct();
     }
-    BasicType *Parser::ClassConstructor::get_type() const
+    BasicType *ClassConstructor::get_type() const
     {
         return type;
     }

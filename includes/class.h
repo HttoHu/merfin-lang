@@ -12,8 +12,6 @@ namespace Mer
     public:
         ClassType() : BasicType(CLASS) {}
         llvm::Type *to_llvm_type() override;
-
-         
         void add_member(const std::string &name, Parser::Node node);
 
         std::pair<int,BasicType*> find_member(const std::string &name);

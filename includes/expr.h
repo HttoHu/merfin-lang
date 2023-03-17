@@ -5,6 +5,9 @@
 #include <memory>
 #include <llvm/IR/Constant.h>
 
+namespace Mer{
+    class ClassType;
+}
 namespace Parser
 {
     using std::unique_ptr;
@@ -51,7 +54,8 @@ namespace Parser
         }
         BasicType *get_type() const override;
         Value *codegen() const override;
-
+        Value* get_alloc_ptr()const override;
+        bool left_value() const override { return true; }
         std::string var_name;
 
     private:
@@ -69,17 +73,19 @@ namespace Parser
                 {HLex::ASSIGN, 16},
                 {HLex::NE, 10},
                 {HLex::EQ, 10},
-                
-                {HLex::LE,9},
-                {HLex::LT,9},
-                {HLex::GE,9},
-                {HLex::GT,9},
 
-                {HLex::MOD, 2},
-                {HLex::ADD, 3},
-                {HLex::SUB, 3},
-                {HLex::MUL, 2},
-                {HLex::DIV, 2}};
+                {HLex::DOT, 2},
+                {HLex::LE, 9},
+                {HLex::LT, 9},
+                {HLex::GE, 9},
+                {HLex::GT, 9},
+
+                {HLex::ADD, 6},
+                {HLex::SUB, 6},
+
+                {HLex::MOD, 5},
+                {HLex::MUL, 5},
+                {HLex::DIV, 5}};
             if (!precedence.count(optype))
                 return -1;
             return precedence[optype];
@@ -126,6 +132,27 @@ namespace Parser
 
     private:
         unique_ptr<AstNode> ast_node;
+    };
+    class MemberVisit : public AstNode
+    {
+    public:
+        MemberVisit(Node _var, Mer::ClassType *_type, const std::string &member_name);
+        Value *codegen() const override;
+        Value* get_alloc_ptr()const override;
+        BasicType *get_type() const override
+        {
+            return type;
+        }
+        bool left_value() const override
+        {
+            return true;
+        }
+
+    private:
+        Node variable;
+        Mer::ClassType *type_info;
+        BasicType *type;
+        int idx;
     };
     unique_ptr<AstNode> parse_expr();
     unique_ptr<AstNode> parse_symbol();

@@ -8,9 +8,16 @@ namespace Parser
         for (auto &[var_name, ast_node] : units)
         {
             auto val = ast_node->codegen();
-            auto llvm_alloc = create_var_alloc(env.cur_func, ast_node->get_type()->to_llvm_type(), var_name);
-            env.ir_builder->CreateStore(val, llvm_alloc);
-            env.local_var_tab[var_name] = llvm_alloc;
+            if (ast_node->get_kind() == CLASS_CONS)
+            {
+                env.local_var_tab[var_name] = (llvm::AllocaInst *)val;
+            }
+            else
+            {
+                auto llvm_alloc = create_var_alloc(env.cur_func, ast_node->get_type()->to_llvm_type(), var_name);
+                env.ir_builder->CreateStore(val, llvm_alloc);
+                env.local_var_tab[var_name] = llvm_alloc;
+            }
         }
         return nullptr;
     }

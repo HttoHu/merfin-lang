@@ -2,6 +2,7 @@
 #include "../includes/env.h"
 #include "../includes/symbol.h"
 #include "../includes/class.h"
+
 namespace Parser
 {
     using namespace llvm;
@@ -15,6 +16,8 @@ namespace Parser
         else
             return ConstantInt::get(*env.the_context, APInt(8, std::get<char_type>(data)));
     }
+
+    // variable
     Value *Variable::codegen() const
     {
         auto alloc_inst = env.local_var_tab[var_name];
@@ -22,41 +25,45 @@ namespace Parser
             return nullptr;
         return env.ir_builder->CreateLoad(alloc_inst->getAllocatedType(), alloc_inst, var_name.c_str());
     }
+    llvm::Value *Variable::get_alloc_ptr() const
+    {
+        auto alloc_inst = env.local_var_tab[var_name];
+        if (!alloc_inst)
+            return nullptr;
+        return alloc_inst;
+    }
     BasicType *Variable::get_type() const
     {
         return type;
     }
+
     Value *BinOp::codegen() const
     {
-        Value *L = left->codegen(), *R = right->codegen();
         switch (type)
         {
         case HLex::ADD:
-            return env.ir_builder->CreateAdd(L, R, "t");
+            return env.ir_builder->CreateAdd(left->codegen(), right->codegen(), "t");
         case HLex::SUB:
-            return env.ir_builder->CreateSub(L, R, "t");
+            return env.ir_builder->CreateSub(left->codegen(), right->codegen(), "t");
         case HLex::MUL:
-            return env.ir_builder->CreateSub(L, R, "t");
+            return env.ir_builder->CreateMul(left->codegen(), right->codegen(), "t");
         case HLex::EQ:
-            return env.ir_builder->CreateICmpEQ(L, R, "t");
+            return env.ir_builder->CreateICmpEQ(left->codegen(), right->codegen(), "t");
         case HLex::NE:
-            return env.ir_builder->CreateICmpNE(L, R, "t");
+            return env.ir_builder->CreateICmpNE(left->codegen(), right->codegen(), "t");
         case HLex::GE:
-            return env.ir_builder->CreateICmpSGE(L, R, "t");
+            return env.ir_builder->CreateICmpSGE(left->codegen(), right->codegen(), "t");
         case HLex::GT:
-            return env.ir_builder->CreateICmpSGT(L, R, "t");
+            return env.ir_builder->CreateICmpSGT(left->codegen(), right->codegen(), "t");
         case HLex::LT:
-            return env.ir_builder->CreateICmpSLT(L, R, "t");
+            return env.ir_builder->CreateICmpSLT(left->codegen(), right->codegen(), "t");
         case HLex::LE:
-            return env.ir_builder->CreateICmpSLE(L, R, "t");
+            return env.ir_builder->CreateICmpSLE(left->codegen(), right->codegen(), "t");
         case HLex::ASSIGN:
         {
-            if (left->get_kind() != NAMED_VAL)
-                throw std::runtime_error("left-value expected a variable!");
-            if (!R)
-                throw std::runtime_error("invalid right-part!");
-            auto var_name = static_cast<Variable *>(left.get())->var_name;
-            return env.ir_builder->CreateStore(R, env.local_var_tab[var_name]);
+            if (!left->left_value())
+                throw std::runtime_error("invalid left value");
+            return env.ir_builder->CreateStore(right->codegen(), left->get_alloc_ptr(),"st");
         }
         default:
             throw SyntaxError("unknown bin op!");
@@ -119,10 +126,22 @@ namespace Parser
         }
         auto left = parse_expr_iter(precedence - 1);
 
-        while (BinOp::get_precedence(env.cur_tag()) == precedence)
+        while (abs(BinOp::get_precedence(env.cur_tag())) == precedence)
         {
             auto op = env.cur_tag();
+            // corner case like member visit
             env.next_token();
+
+            if (op == HLex::DOT)
+            {
+                auto member_name = env.cur_token().val;
+                env.next_token();
+                if (left->get_type()->kind != BasicType::CLASS)
+                    throw SyntaxError("invalid member " + member_name);
+                left = std::make_unique<MemberVisit>(std::move(left), (Mer::ClassType *)left->get_type(), member_name);
+                continue;
+            }
+
             auto right = parse_expr_iter(precedence - 1);
             left = std::make_unique<BinOp>(op, std::move(left), std::move(right));
         }
@@ -158,7 +177,7 @@ namespace Parser
         if (symbol->get_wordtype() == Sym::VAR)
         {
             env.next_token();
-            
+
             return std::make_unique<Variable>(sym_name);
         }
         else if (symbol->get_wordtype() == Sym::FUNC)
@@ -168,11 +187,30 @@ namespace Parser
         else if (symbol->get_wordtype() == Sym::CLASS)
         {
             env.next_token();
-            auto ty = static_cast<Mer::ClassType*>(BasicType::find_type(sym_name));
+            auto ty = static_cast<Mer::ClassType *>(BasicType::find_type(sym_name));
             env.match(HLex::LPAR);
             env.match(HLex::RPAR);
             return std::make_unique<Parser::ClassConstructor>(ty);
         }
         return nullptr;
+    }
+
+    MemberVisit::MemberVisit(Node _var, Mer::ClassType *_type, const std::string &member_name) : variable(std::move(_var)), AstNode(MEMBER_VIS), type_info(_type)
+    {
+        auto res = type_info->find_member(member_name);
+        idx = res.first, type = res.second;
+    }
+
+    Value *MemberVisit::codegen() const
+    {
+        auto var = variable->get_alloc_ptr();
+        auto val = env.ir_builder->CreateStructGEP(type_info->to_llvm_type(), var, idx,"t");
+        return env.ir_builder->CreateLoad(type->to_llvm_type(), val, "t");
+    }
+
+    Value *MemberVisit::get_alloc_ptr() const
+    {
+        auto var = variable->get_alloc_ptr();
+        return env.ir_builder->CreateStructGEP(type_info->to_llvm_type(), var, idx, "t");
     }
 }

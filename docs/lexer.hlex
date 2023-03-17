@@ -42,6 +42,7 @@ SUB:-$
 MUL:*$
 DIV:/$
 MOD:%$
+DOT:.$
 
 STRING:"$
 INT:[0-9]+$

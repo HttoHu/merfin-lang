@@ -3,7 +3,8 @@
 #include <map>
 #include <memory>
 #include <string>
-
+#include <fstream>
+#include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
@@ -53,7 +54,13 @@ int main(int argc, char **argv)
         env.load_file(read_file(filename));
         Parser::parse_program();
 
-        env.the_module->print(llvm::errs(), nullptr);
+        std::error_code ec;
+        llvm::raw_fd_ostream output_file("test.ll", ec);
+        if (ec)
+        {
+            std::cerr << "failed to open test.ll";
+        }
+        env.the_module->print(output_file, nullptr);
     }
     catch (SyntaxError &e)
     {

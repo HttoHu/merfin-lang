@@ -22,7 +22,8 @@ namespace Parser
         VAR_DECL,
         BREAK,
         CONTINUE,
-        CLASS_CONS
+        CLASS_CONS,
+        MEMBER_VIS
     };
     class AstNode
     {
@@ -34,12 +35,15 @@ namespace Parser
         {
             return nullptr;
         }
+        virtual llvm::Value *get_alloc_ptr() const { return nullptr; }
         // value type
-        virtual BasicType* get_type() const { 
-            throw std::runtime_error("call get_type on raw ast node!");    
+        virtual BasicType *get_type() const
+        {
+            throw std::runtime_error("call get_type on raw ast node!");
         }
         virtual void print(int indent) const {}
         virtual ~AstNode() {}
+        virtual bool left_value() const { return false; }
 
     private:
         NodeType type;
